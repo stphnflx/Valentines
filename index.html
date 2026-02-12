@@ -11,7 +11,7 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #e2f0d9; 
+            background-color: #e2f0d9; /* Pastel Green */
             font-family: 'Georgia', serif;
             transition: background-color 0.8s ease;
             overflow: hidden;
@@ -83,16 +83,14 @@
 <body>
 
     <audio id="bgMusic" loop>
-        <source src="PASTE_YOUR_LINK_HERE" type="audio/mpeg">
+        <source src="bgm.mp3" type="audio/mpeg">
     </audio>
 
     <div id="container">
         <div id="letterSection">
             <h1 style="font-size: 1.3rem;">A Note For You...</h1>
             <div class="letter-text">
-                Dearest dayin,
-                
-                lablab ko ikaw so much, and happy birth month! I love you. Sooo I have a question hehehe
+secret yung message ofc
             </div>
             <button class="primary-btn" onclick="showQuestion()">Continue</button>
         </div>
@@ -108,8 +106,8 @@
 
         <div id="celebrationSection" class="hidden">
             <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExc2JvNmExbzlubG5pMjA0azJkNjYzajNodHo1aHpteWYyOW9zdmd5eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/KI5JqBqOKCPjG/giphy.gif" alt="Happy">
-            <h1>Yay! Best Valentine ever! 💚</h1>
-            <p style="color: #386641;">I'll message you the details!</p>
+            <h1>Dapat lang, ako na to bb, ako na to. Labyuu!!! 💚</h1>
+            <p style="color: #386641;">See you bukas hehehehe</p>
         </div>
     </div>
 
@@ -117,9 +115,11 @@
         const music = document.getElementById('bgMusic');
 
         function showQuestion() {
-            // Adjust volume to 40%
+            // Volume set to 40% for the "Sailor Song" vibe
             music.volume = 0.4;
-            music.play().catch(error => console.log("Audio play failed (likely needs a direct link):", error));
+            music.play().catch(error => {
+                console.log("Autoplay blocked. Browser requires interaction first.");
+            });
             
             document.getElementById('letterSection').classList.add('hidden');
             document.getElementById('askSection').classList.remove('hidden');
@@ -129,6 +129,7 @@
             const noBtn = document.getElementById('noBtn');
             const padding = 50;
             
+            // Generate random coordinates within the screen view
             const x = Math.random() * (window.innerWidth - noBtn.offsetWidth - padding);
             const y = Math.random() * (window.innerHeight - noBtn.offsetHeight - padding);
             
@@ -141,7 +142,6 @@
             document.getElementById('askSection').classList.add('hidden');
             document.getElementById('celebrationSection').classList.remove('hidden');
             document.body.style.backgroundColor = "#c8e6c9"; 
-            console.log("She/He said yes!");
         }
     </script>
 </body>

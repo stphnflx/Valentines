@@ -15,7 +15,7 @@
             font-family: 'Georgia', serif;
             transition: background-color 0.8s ease;
             overflow: hidden;
-            touch-action: manipulation;
+            touch-action: none; /* Disables all browser gestures like pull-to-refresh */
         }
 
         #container {
@@ -58,24 +58,26 @@
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
+            transition: background-color 0.3s;
+            -webkit-tap-highlight-color: transparent; /* Removes blue flash on mobile tap */
         }
 
         .primary-btn { background-color: #6a994e; color: white; }
         
-        /* Transition for position is 'none' so it teleports instantly */
         #noBtn { 
             background-color: #a7c957; 
             color: white; 
             z-index: 999;
             position: relative;
+            /* Prevents selecting the text "No" when holding down */
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         img { width: 100%; max-width: 180px; border-radius: 20px; margin-bottom: 1.2rem; }
 
         @media (max-width: 480px) {
             #container { padding: 1.5rem; width: 80%; }
-            h1 { font-size: 1.3rem; }
         }
     </style>
 </head>
@@ -101,7 +103,10 @@
             <h1>Pwede po ba kita maging date sa valentines? >///< 🌿</h1>
             <div class="btn-wrapper">
                 <button id="yesBtn" class="primary-btn" onclick="celebrate()">Yes</button>
-                <button id="noBtn" onmouseover="moveButton()" onclick="moveButton()">No</button>
+                <button id="noBtn" 
+                    onmouseover="moveButton()" 
+                    ontouchstart="moveButton()" 
+                    onclick="moveButton()">No</button>
             </div>
         </div>
 
@@ -125,15 +130,16 @@
         let lastX = 0;
         let lastY = 0;
 
-        function moveButton() {
+        function moveButton(event) {
+            // If it's a touch event, prevent the default behavior (like clicking)
+            if (event) event.preventDefault();
+
             const noBtn = document.getElementById('noBtn');
-            const padding = 20;
+            const padding = 30;
             
             let randomX, randomY;
             let distance = 0;
 
-            // This loop ensures the new position is at least 150px away from the old one
-            // so it never feels "stuck"
             do {
                 const maxWidth = window.innerWidth - noBtn.offsetWidth - padding;
                 const maxHeight = window.innerHeight - noBtn.offsetHeight - padding;
@@ -141,7 +147,6 @@
                 randomX = Math.max(padding, Math.floor(Math.random() * maxWidth));
                 randomY = Math.max(padding, Math.floor(Math.random() * maxHeight));
                 
-                // Calculate distance from previous spot
                 distance = Math.sqrt(Math.pow(randomX - lastX, 2) + Math.pow(randomY - lastY, 2));
             } while (distance < 150); 
 

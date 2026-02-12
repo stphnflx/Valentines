@@ -6,20 +6,92 @@
     <title>A Special Message For You</title>
     <style>
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
             background-color: #e2f0d9; 
             font-family: 'Georgia', serif;
             transition: background-color 0.8s ease;
             overflow: hidden;
-            touch-action: none; /* Disables all browser gestures like pull-to-refresh */
+            touch-action: pan-y;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        #container {
+        /* Isolated Sections */
+        .page-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #letterSection {
+            background: radial-gradient(circle, #fdfdfd 0%, #e2f0d9 100%);
+        }
+
+        .gallery-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .photo-frame {
             background: white;
+            padding: 10px 10px 25px 10px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            transform: rotate(-3deg);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid #ddd;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        .photo-frame:nth-child(even) { transform: rotate(3deg); }
+
+        .photo-frame.maximized {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(0deg) scale(2.5);
+            z-index: 9999;
+            box-shadow: 0 0 50px rgba(0,0,0,0.3);
+            cursor: zoom-out;
+        }
+
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9998;
+            backdrop-filter: blur(3px);
+        }
+
+        .photo-placeholder {
+            width: 100px;
+            height: 100px;
+            background-color: #f0f0f0;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        .photo-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-container {
+            background: rgba(255, 255, 255, 0.95);
             padding: 2rem;
             border-radius: 30px;
             box-shadow: 0 15px 35px rgba(46, 125, 50, 0.1);
@@ -29,37 +101,37 @@
             z-index: 10;
         }
 
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         
-        .letter-text {
-            line-height: 1.6;
-            color: #2d4a22;
-            font-size: 1.05rem;
-            text-align: left;
-            margin-bottom: 25px;
-            white-space: pre-line;
+        .letter-text { 
+            line-height: 1.6; 
+            color: #2d4a22; 
+            font-size: 1.05rem; 
+            text-align: left; 
+            margin-bottom: 25px; 
+            white-space: pre-line; 
         }
 
         h1 { color: #386641; font-family: 'Arial', sans-serif; font-size: 1.5rem; }
 
-        .btn-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            min-height: 80px;
-            position: relative;
+        .btn-wrapper { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 15px; 
+            min-height: 120px; 
+            position: relative; 
         }
 
-        button {
-            padding: 12px 25px;
-            font-size: 1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            -webkit-tap-highlight-color: transparent; /* Removes blue flash on mobile tap */
+        button { 
+            padding: 12px 25px; 
+            font-size: 1rem; 
+            font-weight: bold; 
+            border: none; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            transition: background-color 0.3s, transform 0.2s ease-out; 
+            -webkit-tap-highlight-color: transparent; 
         }
 
         .primary-btn { background-color: #6a994e; color: white; }
@@ -67,17 +139,17 @@
         #noBtn { 
             background-color: #a7c957; 
             color: white; 
-            z-index: 999;
-            position: relative;
-            /* Prevents selecting the text "No" when holding down */
-            user-select: none;
+            z-index: 999; 
+            position: relative; 
+            user-select: none; 
             -webkit-user-select: none;
         }
 
-        img { width: 100%; max-width: 180px; border-radius: 20px; margin-bottom: 1.2rem; }
+        .main-img { width: 100%; max-width: 180px; border-radius: 20px; margin-bottom: 1.2rem; }
 
         @media (max-width: 480px) {
-            #container { padding: 1.5rem; width: 80%; }
+            .card-container { padding: 1.5rem; width: 85%; }
+            .photo-placeholder { width: 80px; height: 80px; }
         }
     </style>
 </head>
@@ -87,38 +159,76 @@
         <source src="bgm.mp3" type="audio/mpeg">
     </audio>
 
-    <div id="container">
-        <div id="letterSection">
-            <h1 style="font-size: 1.2rem;">A Note For You...</h1>
+    <div id="overlay" onclick="minimizePhoto()"></div>
+
+    <div id="letterSection" class="page-section">
+        <div class="gallery-container">
+            <div class="photo-frame" onclick="maximizePhoto(this)">
+                <div class="photo-placeholder"><img src="1.jpg" alt="Memory 1"></div>
+            </div>
+            <div class="photo-frame" onclick="maximizePhoto(this)">
+                <div class="photo-placeholder"><img src="2.jpg" alt="Memory 2"></div>
+            </div>
+            <div class="photo-frame" onclick="maximizePhoto(this)">
+                <div class="photo-placeholder"><img src="3.jpg" alt="Memory 3"></div>
+            </div>
+        </div>
+
+        <div class="card-container">
+            <h1 style="font-size: 1.2rem;">A letter for you...</h1>
             <div class="letter-text">
                 Dearest dayin,
-                
-                lablab ko ikaw so much, and happy birth month! I love you. Sooo I have a question hehehe
+                lablab ko ikaw so much and i hope you know that man right? and happy birth month! I love you. But I have a biggggggggg Question man!!!!
             </div>
             <button class="primary-btn" onclick="showQuestion()">Continue</button>
         </div>
+    </div>
 
-        <div id="askSection" class="hidden">
-            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbzE2MmQ1Z3pjejN0ZmZreHZqbjY0NXcxdG05eGR3ajB6NHU0bWJkcCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/J509hr2j0oMejwlKOS/giphy.gif" alt="Cute Cat">
+    <div id="askSection" class="page-section hidden">
+        <div class="card-container">
+            <img class="main-img" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbzE2MmQ1Z3pjejN0ZmZreHZqbjY0NXcxdG05eGR3ajB6NHU0bWJkcCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/J509hr2j0oMejwlKOS/giphy.gif" alt="Cute Cat">
             <h1>Pwede po ba kita maging date sa valentines? >///< 🌿</h1>
             <div class="btn-wrapper">
                 <button id="yesBtn" class="primary-btn" onclick="celebrate()">Yes</button>
                 <button id="noBtn" 
                     onmouseover="moveButton()" 
-                    ontouchstart="moveButton()" 
-                    onclick="moveButton()">No</button>
+                    ontouchstart="moveButton(event)" 
+                    onclick="moveButton(event)">No</button>
             </div>
         </div>
+    </div>
 
-        <div id="celebrationSection" class="hidden">
-            <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExc2JvNmExbzlubG5pMjA0azJkNjYzajNodHo1aHpteWYyOW9zdmd5eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/KI5JqBqOKCPjG/giphy.gif" alt="Happy">
-            <h1>Yay! Best Valentine ever! 💚</h1>
-            <p style="color: #386641;">I'll message you the details!</p>
+    <div id="celebrationSection" class="page-section hidden">
+        <div class="card-container">
+            <img class="main-img" src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExc2JvNmExbzlubG5pMjA0azJkNjYzajNodHo1aHpteWYyOW9zdmd5eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/KI5JqBqOKCPjG/giphy.gif" alt="Happy">
+            <h1>DAPAT LANG AKO NA TO BB, AKO NA TO 💚</h1>
+            <p style="color: #386641;">See you tomorrow -3-</p>
         </div>
     </div>
 
     <script>
         const music = document.getElementById('bgMusic');
+        let yesScale = 1;
+        let lastX = 0;
+        let lastY = 0;
+
+        function maximizePhoto(element) {
+            const overlay = document.getElementById('overlay');
+            if (element.classList.contains('maximized')) {
+                minimizePhoto();
+            } else {
+                minimizePhoto();
+                element.classList.add('maximized');
+                overlay.style.display = 'block';
+            }
+        }
+
+        function minimizePhoto() {
+            const overlay = document.getElementById('overlay');
+            const frames = document.querySelectorAll('.photo-frame');
+            frames.forEach(f => f.classList.remove('maximized'));
+            overlay.style.display = 'none';
+        }
 
         function showQuestion() {
             music.volume = 0.4;
@@ -127,35 +237,30 @@
             document.getElementById('askSection').classList.remove('hidden');
         }
 
-        let lastX = 0;
-        let lastY = 0;
-
         function moveButton(event) {
-            // If it's a touch event, prevent the default behavior (like clicking)
             if (event) event.preventDefault();
-
             const noBtn = document.getElementById('noBtn');
+            const yesBtn = document.getElementById('yesBtn');
             const padding = 30;
             
             let randomX, randomY;
             let distance = 0;
-
             do {
                 const maxWidth = window.innerWidth - noBtn.offsetWidth - padding;
                 const maxHeight = window.innerHeight - noBtn.offsetHeight - padding;
-                
                 randomX = Math.max(padding, Math.floor(Math.random() * maxWidth));
                 randomY = Math.max(padding, Math.floor(Math.random() * maxHeight));
-                
                 distance = Math.sqrt(Math.pow(randomX - lastX, 2) + Math.pow(randomY - lastY, 2));
             } while (distance < 150); 
 
-            lastX = randomX;
-            lastY = randomY;
-
+            lastX = randomX; lastY = randomY;
             noBtn.style.position = 'fixed';
-            noBtn.style.left = randomX + 'px';
-            noBtn.style.top = randomY + 'px';
+            noBtn.style.left = randomX + 'px'; noBtn.style.top = randomY + 'px';
+
+            // Exponential growth: multiply by 1.2 each time
+            yesScale *= 1.2; 
+            if(yesScale > 20) yesScale = 20; // Safety cap
+            yesBtn.style.transform = `scale(${yesScale})`;
         }
 
         function celebrate() {
@@ -166,4 +271,3 @@
     </script>
 </body>
 </html>
-
